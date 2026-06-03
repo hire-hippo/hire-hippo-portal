@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Hire-Hippo Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root{--accent:#1e8a4a;--light:#e6f5ec;--border:#d4e8db;--text:#1a2e23;--muted:#6b8f78;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:#f4faf6;font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;}
+  .logo{font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:800;color:var(--accent);margin-bottom:6px;text-align:center;}
+  .sub{color:var(--muted);font-size:.9rem;margin-bottom:48px;text-align:center;}
+  .cards{display:flex;gap:20px;flex-wrap:wrap;justify-content:center;width:100%;max-width:700px;}
+  .card{flex:1;min-width:260px;background:#fff;border:1px solid var(--border);border-radius:16px;padding:32px 28px;text-decoration:none;color:var(--text);transition:transform .2s,box-shadow .2s;box-shadow:0 2px 10px rgba(30,138,74,.07);}
+  .card:hover{transform:translateY(-4px);box-shadow:0 10px 30px rgba(30,138,74,.15);}
+  .card-icon{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;margin-bottom:18px;}
+  .card-icon.emp{background:var(--light);}
+  .card-icon.adm{background:#1e8a4a;}
+  .card h2{font-family:'Syne',sans-serif;font-size:1.15rem;font-weight:800;margin-bottom:8px;}
+  .card p{font-size:.85rem;color:var(--muted);line-height:1.6;}
+  .card .arrow{display:inline-block;margin-top:18px;font-size:.82rem;font-weight:600;color:var(--accent);}
+  .footer{margin-top:40px;font-size:.75rem;color:var(--muted);}
+</style>
+</head>
+<body>
+  <div class="logo">Hire-Hippo</div>
+  <div class="sub">Internal HR Portal — select your access below</div>
+  <div class="cards">
+    <a class="card" href="employee-form.html">
+      <div class="card-icon emp">📋</div>
+      <h2>Employee Portal</h2>
+      <p>Submit your bank account details for salary disbursement. Takes less than 2 minutes.</p>
+      <span class="arrow">Fill the form →</span>
+    </a>
+    <a class="card" href="admin-portal.html">
+      <div class="card-icon adm" style="color:#fff;">🔐</div>
+      <h2>Admin Portal</h2>
+      <p>HR and Finance team access. View and generate reports for all submissions live.</p>
+      <span class="arrow">Sign in →</span>
+    </a>
+  </div>
+  <div class="footer">© 2025 Hire-Hippo · Internal use only</div>
+</body>
+</html>
