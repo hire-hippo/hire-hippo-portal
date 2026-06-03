@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Hire-Hippo · Admin Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
+<style>
+  :root{--bg:#ffffff;--surface:#f4faf6;--card:#ffffff;--border:#d4e8db;--accent:#1e8a4a;--accent2:#2db665;--accent-light:#e6f5ec;--green:#1e8a4a;--red:#d63b3b;--text:#1a2e23;--muted:#6b8f78;--label:#4a6b58;--radius:14px;--font-head:'Syne',sans-serif;--font-body:'DM Sans',sans-serif;--shadow:0 1px 4px rgba(30,138,74,.08),0 4px 16px rgba(30,138,74,.06);}
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--surface);color:var(--text);font-family:var(--font-body);min-height:100vh;}
+
+  /* LOGIN */
+  #loginScreen{position:fixed;inset:0;background:var(--surface);display:flex;align-items:center;justify-content:center;z-index:500;padding:20px;}
+  #loginScreen.hidden{display:none;}
+  .login-card{background:#fff;border:1px solid var(--border);border-radius:20px;padding:48px 44px;width:100%;max-width:400px;box-shadow:0 8px 40px rgba(30,138,74,.14);animation:fadeUp .3s ease;}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+  .login-logo{font-family:var(--font-head);font-size:1.5rem;font-weight:800;color:var(--accent);margin-bottom:4px;}
+  .login-sub{font-size:.85rem;color:var(--muted);margin-bottom:32px;}
+  .login-label{display:block;font-size:.82rem;font-weight:600;color:var(--label);margin-bottom:6px;}
+  .login-input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:9px;color:var(--text);font-family:var(--font-body);font-size:.92rem;padding:12px 14px;outline:none;transition:border .2s,box-shadow .2s;margin-bottom:14px;}
+  .login-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(30,138,74,.12);background:#fff;}
+  .login-input::placeholder{color:#a8c4b0;}
+  .login-btn{width:100%;background:var(--accent);border:none;border-radius:10px;color:#fff;font-family:var(--font-head);font-size:1rem;font-weight:700;padding:13px;cursor:pointer;transition:background .2s,transform .15s;margin-top:6px;}
+  .login-btn:hover{background:#17703b;transform:translateY(-1px);}
+  .login-err{color:var(--red);font-size:.82rem;margin-bottom:10px;display:none;padding:10px 12px;background:#fff0f0;border:1px solid rgba(214,59,59,.2);border-radius:8px;}
+  .login-err.show{display:block;}
+  .cred-hint{margin-top:20px;padding:12px 14px;background:var(--accent-light);border:1px solid rgba(30,138,74,.2);border-radius:9px;font-size:.79rem;color:var(--muted);line-height:1.7;}
+  .cred-hint strong{color:var(--accent);}
+
+  /* NAV */
+  nav{display:flex;align-items:center;justify-content:space-between;padding:16px 40px;background:var(--accent);position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(30,138,74,.25);}
+  .logo{font-family:var(--font-head);font-size:1.25rem;font-weight:800;color:#fff;}
+  .nav-right{display:flex;align-items:center;gap:10px;}
+  .nav-tabs{display:flex;gap:6px;}
+  .nav-tab{padding:8px 20px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:transparent;color:rgba(255,255,255,.8);font-family:var(--font-body);font-size:.9rem;cursor:pointer;transition:all .2s;}
+  .nav-tab:hover{color:#fff;background:rgba(255,255,255,.15);}
+  .nav-tab.active{background:#fff;color:var(--accent);font-weight:600;border-color:#fff;}
+  .admin-badge{padding:5px 14px;border-radius:20px;background:#fff;color:var(--accent);font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;}
+  .btn-logout{padding:7px 14px;border-radius:8px;border:1px solid rgba(255,255,255,.35);background:transparent;color:rgba(255,255,255,.85);font-family:var(--font-body);font-size:.82rem;cursor:pointer;transition:all .2s;}
+  .btn-logout:hover{background:rgba(255,255,255,.15);}
+
+  /* APP */
+  #appShell{display:none;}
+  #appShell.show{display:block;}
+  .view{display:none;padding:40px;max-width:1200px;margin:0 auto;animation:fadeUp .3s ease;}
+  .view.active{display:block;}
+  .page-header{margin-bottom:28px;}
+  .page-header h1{font-family:var(--font-head);font-size:1.9rem;font-weight:800;}
+  .page-header p{color:var(--muted);margin-top:6px;font-size:.95rem;}
+
+  /* STATS */
+  .stats-row{display:flex;gap:16px;margin-bottom:28px;flex-wrap:wrap;}
+  .stat-card{flex:1;min-width:140px;background:#fff;border:1px solid var(--border);border-radius:12px;padding:18px 20px;box-shadow:var(--shadow);}
+  .stat-num{font-family:var(--font-head);font-size:2rem;font-weight:800;color:var(--accent);}
+  .stat-label{font-size:.78rem;color:var(--muted);margin-top:2px;}
+
+  /* TOOLBAR + TABLE */
+  .toolbar{display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap;}
+  .search-box{flex:1;min-width:200px;display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--border);border-radius:9px;padding:0 12px;box-shadow:var(--shadow);}
+  .search-box input{background:transparent;border:none;box-shadow:none;padding:10px 0;color:var(--text);font-family:var(--font-body);font-size:.9rem;outline:none;width:100%;}
+  .search-box input::placeholder{color:var(--muted);}
+  .btn-primary{background:var(--accent);border:none;border-radius:8px;color:#fff;font-family:var(--font-head);font-size:.85rem;font-weight:700;padding:9px 18px;cursor:pointer;transition:background .2s;}
+  .btn-primary:hover{background:#17703b;}
+  .btn-danger{background:var(--red);border:none;border-radius:8px;color:#fff;font-family:var(--font-body);font-size:.85rem;padding:9px 16px;cursor:pointer;transition:opacity .2s;}
+  .btn-danger:hover{opacity:.85;}
+  .btn-success{background:var(--accent2);border:none;border-radius:8px;color:#fff;font-family:var(--font-body);font-size:.85rem;padding:9px 16px;cursor:pointer;}
+  .btn-refresh{background:#fff;border:1px solid var(--border);border-radius:8px;color:var(--accent);font-family:var(--font-body);font-size:.85rem;padding:9px 16px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:6px;}
+  .btn-refresh:hover{background:var(--accent-light);}
+  .spin{display:inline-block;animation:spin .7s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  .table-wrap{overflow-x:auto;border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);background:#fff;}
+  table{width:100%;border-collapse:collapse;font-size:.88rem;}
+  thead{background:var(--accent);}
+  th{padding:13px 16px;text-align:left;font-family:var(--font-head);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.9);font-weight:700;white-space:nowrap;}
+  td{padding:13px 16px;border-top:1px solid var(--border);vertical-align:middle;color:var(--text);}
+  tr:hover td{background:var(--accent-light);}
+  .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.75rem;font-weight:600;}
+  .badge.verified{background:rgba(30,138,74,.12);color:var(--accent);border:1px solid rgba(30,138,74,.2);}
+  .action-btns{display:flex;gap:6px;}
+  .btn-icon{background:var(--surface);border:1px solid var(--border);border-radius:7px;color:var(--muted);cursor:pointer;padding:6px 10px;font-size:.78rem;transition:all .2s;display:flex;align-items:center;gap:4px;font-family:var(--font-body);}
+  .btn-icon:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-light);}
+  .btn-icon.delete:hover{border-color:var(--red);color:var(--red);background:#fff0f0;}
+  .empty-state{text-align:center;padding:60px 20px;color:var(--muted);}
+  .empty-state .icon{font-size:3rem;margin-bottom:12px;}
+  .sel-all{width:16px;height:16px;accent-color:#fff;cursor:pointer;}
+  .rec-check{accent-color:var(--accent);}
+
+  /* loading overlay */
+  .loading-bar{height:3px;background:var(--accent-light);position:fixed;top:0;left:0;right:0;z-index:999;display:none;}
+  .loading-bar.show{display:block;}
+  .loading-bar-inner{height:100%;background:var(--accent);width:0;animation:loadbar 1.5s ease infinite;}
+  @keyframes loadbar{0%{width:0;margin-left:0}50%{width:60%;margin-left:20%}100%{width:0;margin-left:100%}}
+
+  /* MODAL */
+  .modal-overlay{position:fixed;inset:0;background:rgba(10,40,20,.45);backdrop-filter:blur(4px);z-index:200;display:none;align-items:center;justify-content:center;padding:20px;}
+  .modal-overlay.open{display:flex;}
+  .modal{background:#fff;border:1px solid var(--border);border-radius:var(--radius);width:100%;max-width:700px;max-height:90vh;overflow-y:auto;animation:fadeUp .25s ease;box-shadow:0 20px 60px rgba(30,138,74,.2);}
+  .modal-header{display:flex;align-items:center;justify-content:space-between;padding:20px 28px;background:var(--accent);border-radius:var(--radius) var(--radius) 0 0;}
+  .modal-header h2{font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:#fff;}
+  .modal-close{background:rgba(255,255,255,.2);border:none;color:#fff;font-size:1.2rem;cursor:pointer;line-height:1;padding:4px 9px;border-radius:6px;transition:background .2s;}
+  .modal-close:hover{background:rgba(255,255,255,.35);}
+  .modal-body{padding:28px;}
+  .detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:24px;}
+  .detail-item{background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:12px 14px;}
+  .detail-item label{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:4px;font-weight:600;}
+  .detail-item span{font-size:.92rem;color:var(--text);font-weight:500;word-break:break-all;}
+  .sig-preview-wrap label{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:8px;font-weight:600;}
+  .sig-preview{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px;}
+  .sig-preview img{max-width:100%;border-radius:4px;display:block;}
+  .modal-footer{padding:16px 28px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;background:var(--surface);border-radius:0 0 var(--radius) var(--radius);}
+  .btn-ghost{padding:9px 18px;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--muted);font-size:.88rem;cursor:pointer;transition:all .2s;font-family:var(--font-body);}
+  .btn-ghost:hover{border-color:var(--accent);color:var(--accent);}
+
+  #toast{position:fixed;bottom:28px;right:28px;color:#fff;padding:13px 20px;border-radius:10px;font-size:.88rem;font-weight:500;z-index:9999;opacity:0;transform:translateY(8px);transition:all .3s;pointer-events:none;box-shadow:0 4px 20px rgba(0,0,0,.2);}
+  #toast.show{opacity:1;transform:translateY(0);}
+  ::-webkit-scrollbar{width:6px;height:6px;}
+  ::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px;}
+  @media(max-width:700px){nav{padding:14px 18px;}.view{padding:20px;}.detail-grid{grid-template-columns:1fr;}.stats-row{flex-direction:column;}.login-card{padding:32px 22px;}}
+</style>
+</head>
+<body>
+
+<div class="loading-bar" id="loadingBar"><div class="loading-bar-inner"></div></div>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">Hire-Hippo</div>
+    <div class="login-sub">Admin Portal — Authorised Access Only</div>
+    <label class="login-label">Username</label>
+    <input class="login-input" type="text" id="loginUser" placeholder="Enter username" autocomplete="off" onkeydown="if(event.key==='Enter')document.getElementById('loginPass').focus()"/>
+    <label class="login-label">Password</label>
+    <input class="login-input" type="password" id="loginPass" placeholder="Enter password" onkeydown="if(event.key==='Enter')doLogin()"/>
+    <div class="login-err" id="loginErr">⚠ Incorrect username or password.</div>
+    <button class="login-btn" onclick="doLogin()">Sign In →</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="appShell">
+  <nav>
+    <div class="logo">Hire-Hippo</div>
+    <div class="nav-right">
+      <span class="admin-badge">Admin</span>
+      <div class="nav-tabs">
+        <button class="nav-tab active" onclick="switchView('records',this)">Records</button>
+      </div>
+      <button class="btn-logout" onclick="doLogout()">Sign Out</button>
+    </div>
+  </nav>
+
+  <div class="view active" id="view-records">
+    <div class="page-header">
+      <h1>Employee Bank Records</h1>
+      <p>Live data from Google Sheets — all employee submissions appear here instantly.</p>
+    </div>
+
+    <div class="stats-row" id="statsRow">
+      <div class="stat-card"><div class="stat-num" id="s-total">—</div><div class="stat-label">Total Submissions</div></div>
+      <div class="stat-card"><div class="stat-num" id="s-dept">—</div><div class="stat-label">Departments</div></div>
+      <div class="stat-card"><div class="stat-num" id="s-latest">—</div><div class="stat-label">Latest Submission</div></div>
+    </div>
+
+    <div class="toolbar">
+      <div class="search-box">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" id="searchInput" placeholder="Search by name, ID, bank, dept…" oninput="filterTable()"/>
+      </div>
+      <button class="btn-refresh" onclick="loadRecords()"><span id="refreshIcon">↻</span> Refresh</button>
+      <button class="btn-success" onclick="generateSelected()">⬇ Selected</button>
+      <button class="btn-primary" onclick="generateAll()">⬇ All Records</button>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th><input type="checkbox" class="sel-all" id="selAll" onchange="toggleSelectAll(this)"/></th>
+            <th>Employee</th><th>Dept</th><th>Bank</th><th>Account No.</th><th>IFSC</th><th>Type</th><th>Status</th><th>Submitted</th><th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="recordsBody"></tbody>
+      </table>
+      <div class="empty-state" id="emptyState" style="display:none;">
+        <div class="icon">🏦</div>
+        <p id="emptyMsg">No records yet. Share the employee form link with your team.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Employee Bank Details</h2>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="closeModal()">Close</button>
+      <button class="btn-primary" style="padding:10px 22px;" onclick="generateCurrentModal()">⬇ Download Report</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbz6IRRMo9x1A29Fm5WhtlXIo7hjIvmDsKpnZ0V8T1ygjGRGcZICY9nNWWBsDyJqjA/exec';
+
+const ADMIN_CREDENTIALS = {
+  'admin':   'hippo2025',
+  'hr':      'hr@hippo',
+  'finance': 'fin@hippo'
+};
+
+let allRecords = [];
+let currentModalRecord = null;
+
+// ── Auth ──
+function doLogin(){
+  const user=document.getElementById('loginUser').value.trim();
+  const pass=document.getElementById('loginPass').value;
+  const err=document.getElementById('loginErr');
+  if(ADMIN_CREDENTIALS[user]&&ADMIN_CREDENTIALS[user]===pass){
+    err.classList.remove('show');
+    sessionStorage.setItem('hh_admin','1');
+    sessionStorage.setItem('hh_user',user);
+    document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('appShell').classList.add('show');
+    loadRecords();
+  } else {
+    err.classList.add('show');
+    document.getElementById('loginPass').value='';
+  }
+}
+function doLogout(){sessionStorage.clear();location.reload();}
+
+window.addEventListener('load',()=>{
+  if(sessionStorage.getItem('hh_admin')==='1'){
+    document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('appShell').classList.add('show');
+    loadRecords();
+  }
+});
+
+function switchView(v,btn){
+  document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(el=>el.classList.remove('active'));
+  document.getElementById('view-'+v).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ── Toast ──
+function toast(msg,ok=true){
+  const t=document.getElementById('toast');t.textContent=msg;
+  t.style.background=ok?'var(--green)':'var(--red)';
+  t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3200);
+}
+
+// ── Load from Google Sheets via JSONP (fixes CORS) ──
+function loadRecords(){
+  const icon=document.getElementById('refreshIcon');
+  icon.classList.add('spin');
+  document.getElementById('loadingBar').classList.add('show');
+  document.getElementById('emptyMsg').textContent='Loading records…';
+  document.getElementById('emptyState').style.display='block';
+  document.getElementById('recordsBody').innerHTML='';
+
+  // Remove previous JSONP script if any
+  const old=document.getElementById('_jsonp');
+  if(old) old.remove();
+
+  // Timeout fallback
+  const timer = setTimeout(()=>{
+    icon.classList.remove('spin');
+    document.getElementById('loadingBar').classList.remove('show');
+    document.getElementById('emptyMsg').textContent='Could not load records. Click Refresh to try again.';
+    toast('Could not connect to Google Sheets.', false);
+  }, 10000);
+
+  window._sheetsCallback = function(data){
+    clearTimeout(timer);
+    icon.classList.remove('spin');
+    document.getElementById('loadingBar').classList.remove('show');
+
+    allRecords = data.map((row, i) => ({
+      id: i,
+      submittedAt: row['Timestamp'] || '',
+      name:        row['Name'] || '',
+      empid:       row['EmployeeID'] || '',
+      dept:        row['Department'] || '',
+      email:       row['Email'] || '',
+      phone:       row['Phone'] || '',
+      doj:         row['DOJ'] || '',
+      bank:        row['BankName'] || '',
+      branch:      row['Branch'] || '',
+      accname:     row['AccountHolder'] || '',
+      accno:       row['AccountNumber'] || '',
+      ifsc:        row['IFSC'] || '',
+      acctype:     row['AccountType'] || '',
+      upi:         row['UPI'] || '',
+      sig:         row['sig'] || ''
+    })).filter(r => r.name);
+
+    renderStats();
+    filterTable();
+    toast('Records loaded — ' + allRecords.length + ' submission(s)');
+  };
+
+  // Inject JSONP script tag
+  const s = document.createElement('script');
+  s.id = '_jsonp';
+  s.src = SHEET_URL + '?callback=_sheetsCallback&t=' + Date.now();
+  s.onerror = function(){
+    clearTimeout(timer);
+    icon.classList.remove('spin');
+    document.getElementById('loadingBar').classList.remove('show');
+    document.getElementById('emptyMsg').textContent='Could not load records. Click Refresh to try again.';
+    toast('Could not connect to Google Sheets.', false);
+  };
+  document.body.appendChild(s);
+}
+
+function renderStats(){
+  const depts=[...new Set(allRecords.map(r=>r.dept).filter(Boolean))].length;
+  document.getElementById('s-total').textContent=allRecords.length;
+  document.getElementById('s-dept').textContent=depts;
+  const latest=allRecords[0];
+  document.getElementById('s-latest').textContent=latest?new Date(latest.submittedAt).toLocaleDateString('en-IN',{day:'2-digit',month:'short'}):'—';
+}
+
+function filterTable(){
+  const q=(document.getElementById('searchInput').value||'').toLowerCase();
+  const filtered=allRecords.filter(r=>[r.name,r.empid,r.bank,r.dept,r.accno,r.branch,r.email].join(' ').toLowerCase().includes(q));
+  const tbody=document.getElementById('recordsBody');
+  document.getElementById('emptyState').style.display=filtered.length?'none':'block';
+  if(!filtered.length){document.getElementById('emptyMsg').textContent='No records match your search.';return;}
+  tbody.innerHTML=filtered.map(r=>`
+    <tr>
+      <td><input type="checkbox" class="rec-check" data-id="${r.id}"/></td>
+      <td><strong>${r.name}</strong><br/><span style="color:var(--muted);font-size:.8rem;">${r.empid}</span></td>
+      <td>${r.dept}</td>
+      <td>${r.bank}</td>
+      <td><code style="font-size:.85rem;">${maskAcc(r.accno)}</code></td>
+      <td><code style="font-size:.85rem;">${r.ifsc}</code></td>
+      <td>${r.acctype}</td>
+      <td><span class="badge verified">Verified</span></td>
+      <td style="font-size:.8rem;color:var(--muted);">${r.submittedAt ? new Date(r.submittedAt).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}) : '—'}</td>
+      <td><div class="action-btns">
+        <button class="btn-icon" onclick="viewRecord(${r.id})">👁 View</button>
+        <button class="btn-icon" onclick="generateOne(${r.id})">⬇</button>
+      </div></td>
+    </tr>`).join('');
+}
+
+function maskAcc(n){return(!n||n.length<5)?n:'••••'+n.slice(-4);}
+function toggleSelectAll(cb){document.querySelectorAll('.rec-check').forEach(c=>c.checked=cb.checked);}
+function getSelected(){return[...document.querySelectorAll('.rec-check:checked')].map(c=>parseInt(c.dataset.id));}
+
+// ── Modal ──
+function viewRecord(id){
+  const r=allRecords.find(x=>x.id===id);if(!r)return;
+  currentModalRecord=r;
+  document.getElementById('modalBody').innerHTML=`
+    <div class="detail-grid">
+      <div class="detail-item"><label>Full Name</label><span>${r.name}</span></div>
+      <div class="detail-item"><label>Employee ID</label><span>${r.empid}</span></div>
+      <div class="detail-item"><label>Department</label><span>${r.dept}</span></div>
+      <div class="detail-item"><label>Email</label><span>${r.email}</span></div>
+      <div class="detail-item"><label>Phone</label><span>${r.phone||'—'}</span></div>
+      <div class="detail-item"><label>Date of Joining</label><span>${r.doj||'—'}</span></div>
+      <div class="detail-item"><label>Bank Name</label><span>${r.bank}</span></div>
+      <div class="detail-item"><label>Branch</label><span>${r.branch}</span></div>
+      <div class="detail-item"><label>Account Holder</label><span>${r.accname}</span></div>
+      <div class="detail-item"><label>Account Number</label><span>${r.accno}</span></div>
+      <div class="detail-item"><label>IFSC Code</label><span>${r.ifsc}</span></div>
+      <div class="detail-item"><label>Account Type</label><span>${r.acctype}</span></div>
+      <div class="detail-item"><label>UPI ID</label><span>${r.upi||'—'}</span></div>
+      <div class="detail-item"><label>Submitted On</label><span>${r.submittedAt ? new Date(r.submittedAt).toLocaleString('en-IN') : '—'}</span></div>
+    </div>
+    ${r.sig ? `<div class="sig-preview-wrap"><label>Acknowledgement Signature</label><div class="sig-preview"><img src="${r.sig}" alt="Signature"/></div></div>` : ''}`;
+  document.getElementById('detailModal').classList.add('open');
+}
+function closeModal(){document.getElementById('detailModal').classList.remove('open');currentModalRecord=null;}
+
+// ── Reports ──
+function buildReportHTML(recs){
+  const rows=recs.map(r=>`
+    <div class="emp-block">
+      <div class="emp-name">${r.name}</div>
+      <div class="emp-id">${r.empid} · ${r.dept}</div>
+      <div class="emp-date">Submitted: ${r.submittedAt ? new Date(r.submittedAt).toLocaleDateString('en-IN',{day:'2-digit',month:'long',year:'numeric'}) : '—'}</div>
+      <table class="r-table">
+        <tr><th>Bank Name</th><td>${r.bank}</td><th>Branch</th><td>${r.branch}</td></tr>
+        <tr><th>Account Holder</th><td>${r.accname}</td><th>Account Type</th><td>${r.acctype}</td></tr>
+        <tr><th>Account Number</th><td>${r.accno}</td><th>IFSC Code</th><td>${r.ifsc}</td></tr>
+        <tr><th>Email</th><td>${r.email}</td><th>Phone</th><td>${r.phone||'—'}</td></tr>
+        <tr><th>UPI ID</th><td colspan="3">${r.upi||'—'}</td></tr>
+      </table>
+      ${r.sig?`<div class="sig-label">Acknowledgement Signature</div><img class="sig-img" src="${r.sig}" alt="Signature"/>`:'<p class="sig-note">No signature captured.</p>'}
+      <p class="sig-note">Employee confirmed the above details are accurate.</p>
+    </div>`).join('<div class="page-break"></div>');
+  return`<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>Hire-Hippo Report</title>
+  <style>body{font-family:'Segoe UI',Arial,sans-serif;color:#1a2e23;margin:0;background:#fff;}.report-header{background:#1e8a4a;color:#fff;padding:26px 40px;}.logo{font-size:1.5rem;font-weight:900;}.sub{font-size:.85rem;opacity:.85;margin-top:4px;}.report-meta{padding:12px 40px;background:#f4faf6;border-bottom:1px solid #d4e8db;font-size:.8rem;color:#5a7a68;}.emp-block{padding:28px 40px;border-bottom:2px dashed #d4e8db;}.emp-name{font-size:1.2rem;font-weight:700;}.emp-id{font-size:.85rem;color:#5a7a68;margin-top:2px;}.emp-date{font-size:.8rem;color:#8aaa98;margin-top:2px;margin-bottom:14px;}.r-table{width:100%;border-collapse:collapse;font-size:.88rem;margin-bottom:16px;}.r-table th{background:#e6f5ec;padding:8px 12px;text-align:left;font-weight:700;color:#1e8a4a;border:1px solid #d4e8db;width:18%;}.r-table td{padding:8px 12px;border:1px solid #d4e8db;}.sig-label{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:#8aaa98;margin-bottom:6px;font-weight:600;}.sig-img{max-width:260px;border:1px solid #d4e8db;border-radius:6px;background:#f4faf6;padding:6px;display:block;}.sig-note{font-size:.78rem;color:#8aaa98;margin-top:6px;font-style:italic;}.page-break{page-break-after:always;}.footer{padding:16px 40px;font-size:.72rem;color:#aaa;text-align:center;border-top:1px solid #d4e8db;margin-top:20px;}@media print{.page-break{page-break-after:always;}}</style>
+  </head><body>
+  <div class="report-header"><div class="logo">Hire-Hippo</div><div class="sub">Employee Bank Details — Confidential Report</div></div>
+  <div class="report-meta">Generated: ${new Date().toLocaleString('en-IN')} · Records: ${recs.length}</div>
+  ${rows}
+  <div class="footer">Confidential — HR/Finance use only. © ${new Date().getFullYear()} Hire-Hippo.</div>
+  </body></html>`;
+}
+function openReport(recs){const w=window.open('','_blank');w.document.write(buildReportHTML(recs));w.document.close();setTimeout(()=>w.print(),600);}
+function generateOne(id){const r=allRecords.find(x=>x.id===id);if(r)openReport([r]);}
+function generateCurrentModal(){if(currentModalRecord)openReport([currentModalRecord]);}
+function generateSelected(){const ids=getSelected();if(!ids.length){toast('Select at least one record.',false);return;}openReport(allRecords.filter(r=>ids.includes(r.id)));}
+function generateAll(){if(!allRecords.length){toast('No records to export.',false);return;}openReport(allRecords);}
+
+document.getElementById('detailModal').addEventListener('click',function(e){if(e.target===this)closeModal();});
+</script>
+</body>
+</html>
