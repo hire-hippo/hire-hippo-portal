@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>HireHippo — Roster &amp; Shift Manager</title>
+<style>
+  :root{
+    --bg:#f4f6f5;
+    --card:#ffffff;
+    --ink:#1f2a24;
+    --sub:#5c6b63;
+    --line:#e1e6e3;
+    --accent:#2f6f4f;
+    --accent-dark:#1f4f38;
+    --accent-soft:#e8f2ec;
+    --day:#e9c46a;
+    --day-dark:#8a6d1d;
+    --night:#3a4a63;
+    --night-soft:#e7ebf3;
+    --danger:#b3452f;
+    --fl:#dfe9f7;
+    --ca:#eef0e3;
+    --both:#f3e6d8;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    padding-bottom:60px;
+  }
+  header{
+    background:linear-gradient(135deg,var(--accent-dark),var(--accent));
+    color:#fff;
+    padding:22px 28px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:12px;
+  }
+  header h1{margin:0;font-size:1.35rem;font-weight:600;}
+  header p{margin:2px 0 0;font-size:.82rem;opacity:.85;}
+  .wrap{max-width:1180px;margin:0 auto;padding:22px 20px;}
+
+  /* Shift banner */
+  .shift-banner{
+    background:var(--card);
+    border-radius:14px;
+    box-shadow:0 2px 10px rgba(0,0,0,.06);
+    padding:20px 24px;
+    margin-bottom:24px;
+    display:flex;
+    gap:24px;
+    flex-wrap:wrap;
+    align-items:center;
+  }
+  .shift-banner h2{margin:0 0 4px;font-size:1rem;color:var(--sub);font-weight:600;text-transform:uppercase;letter-spacing:.04em;}
+  .shift-cards{display:flex;gap:16px;flex-wrap:wrap;flex:1;}
+  .shift-card{
+    flex:1;min-width:220px;
+    border-radius:12px;
+    padding:14px 18px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    border:1px solid var(--line);
+  }
+  .shift-card.day{background:#fdf6e3;border-color:#eddca0;}
+  .shift-card.night{background:var(--night-soft);border-color:#c7d0e0;}
+  .shift-card .team-name{font-weight:700;font-size:1.05rem;}
+  .shift-tag{
+    padding:5px 12px;border-radius:999px;font-size:.78rem;font-weight:700;letter-spacing:.03em;
+  }
+  .shift-tag.day{background:var(--day);color:#5c470c;}
+  .shift-tag.night{background:var(--night);color:#fff;}
+  .shift-meta{font-size:.78rem;color:var(--sub);margin-top:6px;}
+
+  .date-check{
+    display:flex;align-items:center;gap:8px;font-size:.85rem;color:var(--sub);
+  }
+  .date-check input{
+    padding:7px 10px;border-radius:8px;border:1px solid var(--line);font-size:.85rem;
+  }
+  .date-check button{
+    padding:7px 14px;border-radius:8px;border:none;background:var(--accent);color:#fff;font-size:.82rem;cursor:pointer;font-weight:600;
+  }
+  .date-check button:hover{background:var(--accent-dark);}
+  #dateResult{font-weight:700;color:var(--accent-dark);}
+
+  /* Tabs */
+  .tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+  .tab-btn{
+    padding:9px 18px;border-radius:999px;border:1px solid var(--line);background:var(--card);
+    cursor:pointer;font-size:.88rem;font-weight:600;color:var(--sub);
+  }
+  .tab-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+
+  .team-panel{display:none;}
+  .team-panel.active{display:block;}
+
+  .team-head{
+    display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:10px;
+  }
+  .team-head h2{margin:0;font-size:1.15rem;}
+  .team-head .count{font-size:.8rem;color:var(--sub);}
+  .btn{
+    padding:8px 16px;border-radius:8px;border:none;background:var(--accent);color:#fff;
+    font-size:.85rem;font-weight:600;cursor:pointer;
+  }
+  .btn:hover{background:var(--accent-dark);}
+  .btn.secondary{background:#fff;color:var(--accent);border:1px solid var(--accent);}
+  .btn.secondary:hover{background:var(--accent-soft);}
+  .btn.small{padding:5px 10px;font-size:.76rem;border-radius:6px;}
+  .btn.danger{background:var(--danger);}
+  .btn.danger:hover{background:#8f3423;}
+
+  table{width:100%;border-collapse:collapse;background:var(--card);border-radius:12px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.05);}
+  thead th{
+    text-align:left;padding:11px 14px;background:var(--accent-dark);color:#fff;font-size:.8rem;
+    text-transform:uppercase;letter-spacing:.03em;font-weight:600;
+  }
+  tbody td{padding:10px 14px;border-bottom:1px solid var(--line);font-size:.9rem;vertical-align:middle;}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr:hover{background:#fafbfa;}
+  .loc-badge{
+    padding:3px 10px;border-radius:999px;font-size:.76rem;font-weight:700;border:1px solid rgba(0,0,0,.08);display:inline-block;
+  }
+  .loc-Ca{background:#fff;color:#4a5a3a;}
+  .loc-Fl{background:#fff;color:#2c4670;}
+  .loc-CaFl{background:#fff;color:#7a4d20;}
+
+  /* group row coloring — mirrors the original sheet's green/blue coding */
+  tbody tr.group-A{background:#eaf0e1;}
+  tbody tr.group-A:hover{background:#e0e9d4;}
+  tbody tr.group-B{background:#dee8f6;}
+  tbody tr.group-B:hover{background:#d2e0f2;}
+  .group-dot{
+    display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:7px;vertical-align:middle;
+  }
+  .group-dot.A{background:#7a9d5c;}
+  .group-dot.B{background:#5b7fb5;}
+  .legend{
+    display:flex;gap:18px;align-items:center;font-size:.8rem;color:var(--sub);margin-bottom:10px;flex-wrap:wrap;
+  }
+  .legend span{display:flex;align-items:center;}
+  .group-toggle{
+    padding:4px 9px;border-radius:6px;border:1px solid var(--line);background:#fff;cursor:pointer;font-size:.74rem;font-weight:600;color:var(--sub);
+  }
+  .group-toggle:hover{opacity:.8;}
+  .notes-text{color:var(--sub);font-style:italic;font-size:.84rem;}
+  .name-cell{font-weight:600;}
+  .name-cell.core-name{font-weight:800;color:var(--accent-dark);}
+  .actions-cell{white-space:nowrap;text-align:right;}
+
+  /* training status */
+  .train-badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:.74rem;font-weight:700;white-space:nowrap;}
+  .train-badge.live{background:#e2f3e6;color:#1f6b3a;}
+  .train-badge.training{background:#fdf1da;color:#8a6d1d;}
+  .train-detail{font-size:.74rem;color:var(--sub);margin-top:3px;}
+  .train-cert{font-size:.72rem;color:var(--accent-dark);margin-top:3px;cursor:default;}
+  .train-cert.muted{color:#a3aca6;}
+  .county-card{border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--card);}
+  .county-card .county-name{font-weight:700;margin-bottom:6px;}
+  .county-card .county-count{font-weight:400;color:var(--sub);font-size:.78rem;}
+  .county-emp{font-size:.82rem;padding:2px 0;}
+  .training-section{background:var(--card);border-radius:12px;padding:18px;margin-bottom:20px;box-shadow:0 2px 10px rgba(0,0,0,.05);}
+  .training-section h3{margin:0 0 12px;font-size:1rem;}
+
+  .print-only{display:none;}
+  @media print{
+    .no-print{display:none !important;}
+    .overlay{display:none !important;}
+    #toast{display:none !important;}
+    .print-only{display:block !important;}
+    body{background:#fff;}
+    header{background:#fff !important;color:#000 !important;border-bottom:2px solid #1f4f38;box-shadow:none;}
+    header h1{color:#1f4f38 !important;}
+    header p{color:#333 !important;}
+    .shift-banner{box-shadow:none;border:1px solid #ccc;}
+    table{box-shadow:none;}
+    .roster-table thead th:last-child, .roster-table tbody td.actions-cell{display:none !important;}
+    body.print-mode .team-panel{display:block !important;page-break-after:always;}
+    body.print-mode .team-panel:last-of-type{page-break-after:auto;}
+  }
+  .empty-row td{text-align:center;color:var(--sub);padding:24px;font-style:italic;}
+
+  /* modal */
+  .overlay{
+    display:none;position:fixed;inset:0;background:rgba(20,30,25,.45);
+    align-items:center;justify-content:center;z-index:50;padding:20px;
+  }
+  .overlay.active{display:flex;}
+  .modal{
+    background:#fff;border-radius:14px;padding:24px 26px;width:100%;max-width:420px;
+    box-shadow:0 10px 40px rgba(0,0,0,.2);
+  }
+  .modal h3{margin:0 0 16px;font-size:1.05rem;}
+  .field{margin-bottom:14px;}
+  .field label{display:block;font-size:.8rem;color:var(--sub);margin-bottom:5px;font-weight:600;}
+  .field input, .field select, .field textarea{
+    width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:8px;font-size:.9rem;font-family:inherit;
+  }
+  .field textarea{resize:vertical;min-height:50px;}
+  .modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px;}
+  .modal-actions .btn.secondary{border:1px solid var(--line);color:var(--sub);}
+
+  .toast{
+    position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+    background:var(--accent-dark);color:#fff;padding:10px 20px;border-radius:999px;
+    font-size:.85rem;opacity:0;pointer-events:none;transition:opacity .3s;z-index:100;
+  }
+  .toast.show{opacity:1;}
+
+  @media (max-width:640px){
+    header{padding:18px;}
+    .wrap{padding:16px 12px;}
+    .roster-table thead th:nth-child(4), .roster-table tbody td:nth-child(4){display:none;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>HireHippo — Roster &amp; Shift Manager</h1>
+    <p>HireHippo · Team 1 &amp; Team 2 · CA / FL calling operations</p>
+  </div>
+  <div style="display:flex;align-items:center;gap:14px;">
+    <div id="syncStatus" class="no-print" style="font-size:.78rem;opacity:.9;display:flex;align-items:center;gap:6px;">
+      <span id="syncDot" style="width:8px;height:8px;border-radius:50%;background:#c9c9c9;display:inline-block;"></span>
+      <span id="syncText">Not connected — changes stay on this device</span>
+    </div>
+    <button class="btn secondary no-print" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.4);" onclick="openSyncModal()">⇄ Sync Settings</button>
+    <div style="font-size:.8rem;opacity:.85;" id="todayLabel"></div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="print-only" id="printTimestamp" style="font-size:.85rem;color:#333;margin-bottom:12px;"></div>
+
+  <div class="shift-banner">
+    <div style="width:100%;display:flex;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+      <div>
+        <h2>Current Shift (Today)</h2>
+        <div class="shift-cards" id="currentShiftCards"></div>
+      </div>
+    </div>
+    <div class="date-check no-print" style="width:100%;border-top:1px solid var(--line);padding-top:14px;">
+      Check shift on:
+      <input type="date" id="checkDate">
+      <button onclick="checkDate()">Check</button>
+      <span id="dateResult"></span>
+    </div>
+  </div>
+
+  <div class="tabs no-print">
+    <button class="tab-btn active" onclick="switchTab(1)">Team 1 (<span id="count1">0</span>)</button>
+    <button class="tab-btn" onclick="switchTab(2)">Team 2 (<span id="count2">0</span>)</button>
+    <button class="tab-btn" onclick="switchTab(3)">Who Works With Whom</button>
+    <button class="tab-btn" onclick="switchTab(4)">Training Overview</button>
+  </div>
+
+  <div class="team-panel active" id="panel1">
+    <div class="team-head">
+      <h2>Team 1</h2>
+      <div>
+        <button class="btn secondary no-print" onclick="openAdd(1)">+ Add Employee</button>
+      </div>
+    </div>
+    <div class="legend">
+      <span><span class="group-dot A"></span>Group A — paired with Team 2's Group A</span>
+      <span><span class="group-dot B"></span>Group B — paired with Team 2's Group B</span>
+    </div>
+    <table class="roster-table">
+      <thead><tr><th>Name</th><th>Location</th><th>Training</th><th>Notes</th><th style="text-align:right;">Actions</th></tr></thead>
+      <tbody id="body1"></tbody>
+    </table>
+  </div>
+
+  <div class="team-panel" id="panel2">
+    <div class="team-head">
+      <h2>Team 2</h2>
+      <div>
+        <button class="btn secondary no-print" onclick="openAdd(2)">+ Add Employee</button>
+      </div>
+    </div>
+    <div class="legend">
+      <span><span class="group-dot A"></span>Group A — paired with Team 1's Group A</span>
+      <span><span class="group-dot B"></span>Group B — paired with Team 1's Group B</span>
+    </div>
+    <table class="roster-table">
+      <thead><tr><th>Name</th><th>Location</th><th>Training</th><th>Notes</th><th style="text-align:right;">Actions</th></tr></thead>
+      <tbody id="body2"></tbody>
+    </table>
+  </div>
+
+  <div class="team-panel" id="panel3">
+    <div class="team-head">
+      <h2>Who Works With Whom</h2>
+      <div class="count">Same-colour groups across Team 1 &amp; Team 2 work together</div>
+    </div>
+    <div class="legend">
+      <span><span class="group-dot A"></span>Group A</span>
+      <span><span class="group-dot B"></span>Group B</span>
+    </div>
+    <div id="pairView"></div>
+  </div>
+
+  <div class="team-panel" id="panel4">
+    <div class="team-head">
+      <h2>Training Overview</h2>
+      <div class="count">Live vs. in-training status, current assignments, and county certifications across both teams</div>
+    </div>
+    <div id="trainingView"></div>
+  </div>
+
+  <div style="margin-top:18px;display:flex;gap:10px;flex-wrap:wrap;" class="no-print">
+    <button class="btn secondary" onclick="exportPDF()">Export as PDF</button>
+    <button class="btn secondary" onclick="exportData()">Export JSON</button>
+    <button class="btn secondary" onclick="document.getElementById('importFile').click()">Import JSON</button>
+    <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+    <button class="btn danger" onclick="resetData()">Reset to Original Rosters</button>
+  </div>
+
+</div>
+
+<!-- Add/Edit Modal -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <h3 id="modalTitle">Add Employee</h3>
+    <div class="field">
+      <label>Name</label>
+      <input type="text" id="fName">
+    </div>
+    <div class="field">
+      <label>Location</label>
+      <select id="fLocation">
+        <option value="Ca">Ca</option>
+        <option value="Fl">Fl</option>
+        <option value="Ca+Fl">Ca+Fl</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Notes</label>
+      <textarea id="fNotes" placeholder="e.g. Calling - CA, To be trained on calling - FL..."></textarea>
+    </div>
+    <div class="field">
+      <label>Team</label>
+      <select id="fTeam">
+        <option value="1">Team 1</option>
+        <option value="2">Team 2</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Group (who they work with)</label>
+      <select id="fGroup">
+        <option value="A">Group A (green)</option>
+        <option value="B">Group B (blue)</option>
+      </select>
+    </div>
+    <hr style="border:none;border-top:1px solid var(--line);margin:16px 0;">
+    <div class="field">
+      <label>Employment Status</label>
+      <select id="fStatus" onchange="toggleTrainingFields()">
+        <option value="live">Live (fully working)</option>
+        <option value="training">In Training</option>
+      </select>
+    </div>
+    <div id="trainingFieldsWrap" style="display:none;">
+      <div class="field">
+        <label>Currently training on (county)</label>
+        <input type="text" id="fCurrentCounty" placeholder="e.g. Los Angeles County">
+      </div>
+    </div>
+    <div class="field">
+      <label>Certified / already-trained counties</label>
+      <textarea id="fCertified" placeholder="Comma-separated, e.g. Los Angeles, Orange, Miami-Dade"></textarea>
+    </div>
+    <div class="field">
+      <label>Getting trained by</label>
+      <input type="text" id="fTrainerBy" placeholder="Name of the person training this employee">
+    </div>
+    <div id="trainingOthersInfo" class="notes-text" style="margin-top:-8px;margin-bottom:14px;"></div>
+    <div class="modal-actions">
+      <button class="btn secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn" onclick="saveEmployee()">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Sync Settings Modal -->
+<div class="overlay" id="syncOverlay">
+  <div class="modal" style="max-width:560px;">
+    <h3>Sync Settings — Share This Tracker</h3>
+    <p style="font-size:.85rem;color:var(--sub);line-height:1.5;">
+      This file works offline on its own by default. To let everyone who has this file see each other's
+      changes, connect it to one shared online endpoint below (a small Google Sheet + Apps Script backend
+      works well — see instructions). Everyone using the tracker should paste the <strong>same URL</strong>.
+    </p>
+    <div class="field">
+      <label>Shared endpoint URL (Apps Script Web App)</label>
+      <input type="text" id="syncUrlInput" placeholder="https://script.google.com/macros/s/.../exec">
+    </div>
+    <div class="modal-actions" style="justify-content:space-between;">
+      <button class="btn danger" onclick="clearSyncUrl()">Disconnect</button>
+      <div style="display:flex;gap:10px;">
+        <button class="btn secondary" onclick="closeSyncModal()">Cancel</button>
+        <button class="btn" onclick="saveSyncUrl()">Connect &amp; Sync</button>
+      </div>
+    </div>
+    <details style="margin-top:16px;">
+      <summary style="cursor:pointer;font-size:.85rem;color:var(--accent-dark);font-weight:600;">
+        Setup instructions (one-time, for whoever owns the tracker)
+      </summary>
+      <ol style="font-size:.8rem;color:var(--sub);line-height:1.6;padding-left:20px;margin-top:8px;">
+        <li>Create a blank Google Sheet (this will just hold the shared data, no need to add columns).</li>
+        <li>Go to <strong>Extensions → Apps Script</strong>, delete any starter code, and paste the script below.</li>
+        <li>Click <strong>Deploy → New deployment → Web app</strong>. Set "Execute as: Me" and
+          "Who has access: Anyone with the link". Deploy.</li>
+        <li>Copy the Web App URL it gives you and paste it into the field above — send that same URL
+          to everyone else who should share this tracker.</li>
+      </ol>
+      <textarea readonly style="width:100%;min-height:210px;font-family:monospace;font-size:.75rem;margin-top:8px;background:#f7f8f6;">function doGet(e) {
+  const props = PropertiesService.getScriptProperties();
+  const json = props.getProperty('roster_data') || '{}';
+  const callback = e.parameter.callback;
+  if (callback) {
+    // JSONP response — avoids browser CORS restrictions when reading data
+    return ContentService.createTextOutput(callback + '(' + json + ')')
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+  }
+  return ContentService.createTextOutput(json)
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function doPost(e) {
+  const props = PropertiesService.getScriptProperties();
+  props.setProperty('roster_data', e.postData.contents);
+  return ContentService.createTextOutput(JSON.stringify({status:'ok'}))
+    .setMimeType(ContentService.MimeType.JSON);
+}</textarea>
+      <p style="font-size:.78rem;color:var(--sub);margin-top:6px;">
+        Already deployed an earlier version? Paste this updated code in, then use
+        <strong>Deploy → Manage deployments → ✏️ edit → Version: New version → Deploy</strong>
+        (the URL stays the same, so no need to reconnect).
+      </p>
+    </details>
+  </div>
+</div>
+
+
+<script>
+const STORAGE_KEY = 'hh_calling_teams_v1';
+const SYNC_URL_KEY = 'hh_sync_url_v1';
+let syncUrl = localStorage.getItem(SYNC_URL_KEY) || '';
+let syncPolling = null;
+
+const DEFAULT_DATA = {
+  team1: [
+    {name:"Obaid Nabi (50% Allocation)", location:"Ca", notes:"Permanent Swing shift - Calling CA", group:"A"},
+    {name:"Aiman Khan", location:"Ca+Fl", notes:"Calling - CA+Fl", group:"A"},
+    {name:"Younis Kash", location:"Ca", notes:"Calling - CA", group:"A"},
+    {name:"Zuhaib Rather", location:"Fl", notes:"To be trained on calling - FL", group:"A"},
+    {name:"Tasir Dar", location:"Ca", notes:"", group:"A"},
+    {name:"Afeen Hussain", location:"Ca", notes:"Calling - CA", group:"A"},
+    {name:"Owais Nabi", location:"Ca", notes:"To be trained to CA calling", group:"A"},
+    {name:"Ibrahim Gulzar", location:"Ca", notes:"To be trained to CA calling", group:"A"},
+    {name:"Syed Abdul Basit", location:"Fl", notes:"To be trained on calling - FL", group:"A"},
+    {name:"Zaeem Ahmad", location:"Fl", notes:"To be trained on calling - FL", group:"A"},
+    {name:"Faizan Gulzar", location:"Fl", notes:"To be trained on calling - FL", group:"A"},
+    {name:"Farhan Gulzar", location:"Fl", notes:"To be trained on calling - FL", group:"A"},
+    {name:"Hamid Hussain", location:"Ca", notes:"To be trained to CA calling", group:"A"},
+    {name:"Haris Hamdhani", location:"Ca", notes:"Calling - CA", group:"B"},
+    {name:"Salim", location:"Ca", notes:"Calling - CA", group:"B"},
+    {name:"Malik Umer", location:"Ca", notes:"To be trained to CA calling", group:"B"},
+    {name:"Aadil", location:"Ca", notes:"", group:"B"},
+    {name:"Shahid Shafi", location:"Ca+Fl", notes:"To be trained to CA calling", group:"B"},
+    {name:"Tawfeeq", location:"Fl", notes:"", group:"B"},
+    {name:"Muqsit Dar", location:"Ca", notes:"", group:"B"}
+  ],
+  team2: [
+    {name:"Obaid Nabi (50% Allocation)", location:"Ca", notes:"Permanent Swing shift - Calling CA", group:"A"},
+    {name:"Adeel Khan", location:"Ca", notes:"Calling - CA", group:"A"},
+    {name:"Umair Bashir", location:"Ca", notes:"Calling - CA", group:"A"},
+    {name:"Aijaz Langoo", location:"Ca", notes:"Calling - CA", group:"A"},
+    {name:"Abid Shah", location:"Ca", notes:"Calling - CA", group:"A"},
+    {name:"Aaqib Hassan", location:"Ca", notes:"Calling - CA", group:"A"},
+    {name:"Faheem Bin Manzoor", location:"Ca", notes:"To be trained to CA calling", group:"A"},
+    {name:"Khalid Mushtaq", location:"Ca", notes:"To be trained to CA calling", group:"A"},
+    {name:"Mir Saqib Maqbool", location:"Fl", notes:"To be trained on calling - FL", group:"A"},
+    {name:"Moomin Mushtaq", location:"Fl", notes:"To be trained on calling - FL", group:"A"},
+    {name:"Owais Ashraf Wani", location:"Fl", notes:"To be trained on calling - FL", group:"A"},
+    {name:"Asif Iqbal Bhat", location:"Fl", notes:"", group:"A"},
+    {name:"Jaseem", location:"Fl", notes:"", group:"A"},
+    {name:"Faheel", location:"Ca", notes:"To be trained to CA calling", group:"B"},
+    {name:"Rayees", location:"Ca", notes:"Calling - CA", group:"B"},
+    {name:"Vamiq", location:"Ca", notes:"Calling - CA", group:"B"},
+    {name:"Amir Aziz", location:"Ca", notes:"To be trained to CA calling", group:"B"},
+    {name:"Owais Ganai", location:"Ca", notes:"Calling - CA", group:"B"},
+    {name:"Peerzada Suhail", location:"Fl", notes:"To be trained to CA calling", group:"B"},
+    {name:"Shoaib War", location:"Fl", notes:"", group:"B"}
+  ]
+};
+
+// Shift rotation anchor: Monday 27 July 2026 -> Team 2 = Day, Team 1 = Night, for a 14-day block.
+const ROTATION_START = new Date(2026, 6, 27); // month is 0-indexed: 6 = July
+const CYCLE_DAYS = 14;
+
+let data = loadData();
+let currentTeam = 1;
+let editingIndex = null;
+let editingTeam = null;
+
+function loadData(){
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if(raw){
+    try{ return JSON.parse(raw); }catch(e){ return structuredClone(DEFAULT_DATA); }
+  }
+  return structuredClone(DEFAULT_DATA);
+}
+function persist(shouldPush = true){
+  data.updatedAt = Date.now();
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  if(shouldPush && syncUrl){
+    pushToServer();
+  }
+}
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 1800);
+}
+
+/* ---------- Shared sync (Google Apps Script endpoint) ---------- */
+function setSyncStatus(state, extraText){
+  const dot = document.getElementById('syncDot');
+  const text = document.getElementById('syncText');
+  if(!syncUrl){
+    dot.style.background = '#c9c9c9';
+    text.textContent = 'Not connected — changes stay on this device';
+    return;
+  }
+  if(state === 'syncing'){
+    dot.style.background = '#e9c46a';
+    text.textContent = 'Syncing…';
+  } else if(state === 'error'){
+    dot.style.background = '#b3452f';
+    text.textContent = 'Sync error — check the shared URL';
+  } else {
+    dot.style.background = '#4c9a6a';
+    const time = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+    text.textContent = extraText || ('Synced ' + time);
+  }
+}
+
+function pushToServer(){
+  if(!syncUrl) return;
+  setSyncStatus('syncing');
+  // no-cors: we don't need to read the response, just fire the write.
+  // Apps Script doesn't send CORS headers, so a normal fetch that tries
+  // to read the response would be blocked — no-cors avoids that.
+  fetch(syncUrl, {
+    method:'POST',
+    mode:'no-cors',
+    headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body: JSON.stringify(data)
+  }).then(()=> setSyncStatus('ok'))
+    .catch(()=> setSyncStatus('error'));
+}
+
+let jsonpCounter = 0;
+function pullFromServer(silent){
+  if(!syncUrl) return;
+  if(!silent) setSyncStatus('syncing');
+  // JSONP via a <script> tag: script tags aren't subject to CORS,
+  // which is how we read data back from Apps Script.
+  const callbackName = 'hhSyncCb' + (jsonpCounter++);
+  const script = document.createElement('script');
+  let finished = false;
+
+  function cleanup(){
+    delete window[callbackName];
+    if(script.parentNode) script.parentNode.removeChild(script);
+  }
+
+  window[callbackName] = function(remote){
+    finished = true;
+    cleanup();
+    if(remote && remote.team1 && remote.team2){
+      const remoteTime = remote.updatedAt || 0;
+      const localTime = data.updatedAt || 0;
+      if(remoteTime > localTime){
+        data = remote;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        render();
+        if(!silent) toast('Pulled latest changes from the team');
+      }
+    }
+    setSyncStatus('ok');
+  };
+
+  script.onerror = function(){
+    finished = true;
+    cleanup();
+    setSyncStatus('error');
+  };
+
+  const sep = syncUrl.indexOf('?') > -1 ? '&' : '?';
+  script.src = syncUrl + sep + 'callback=' + callbackName + '&_=' + Date.now();
+  document.body.appendChild(script);
+
+  setTimeout(() => {
+    if(!finished){ cleanup(); setSyncStatus('error'); }
+  }, 10000);
+}
+
+function openSyncModal(){
+  document.getElementById('syncUrlInput').value = syncUrl;
+  document.getElementById('syncOverlay').classList.add('active');
+}
+function closeSyncModal(){
+  document.getElementById('syncOverlay').classList.remove('active');
+}
+function saveSyncUrl(){
+  const val = document.getElementById('syncUrlInput').value.trim();
+  if(!val){ toast('Paste a valid URL first'); return; }
+  syncUrl = val;
+  localStorage.setItem(SYNC_URL_KEY, syncUrl);
+  closeSyncModal();
+  startSync();
+  toast('Connected — syncing with shared tracker');
+}
+function clearSyncUrl(){
+  syncUrl = '';
+  localStorage.removeItem(SYNC_URL_KEY);
+  if(syncPolling) clearInterval(syncPolling);
+  setSyncStatus('idle');
+  closeSyncModal();
+  toast('Disconnected — this device is now local-only');
+}
+function startSync(){
+  if(syncPolling) clearInterval(syncPolling);
+  if(!syncUrl) { setSyncStatus('idle'); return; }
+  pullFromServer(true);
+  syncPolling = setInterval(() => pullFromServer(true), 6000);
+}
+
+function locClass(loc){
+  return 'loc-' + loc.replace('+','\\+');
+}
+
+function render(){
+  renderTeam(1);
+  renderTeam(2);
+  document.getElementById('count1').textContent = data.team1.length;
+  document.getElementById('count2').textContent = data.team2.length;
+  renderShiftBanner();
+}
+
+const CORE_NAMES = ['Obaid Nabi', 'Aiman Khan', 'Younis Kash', 'Adeel Khan', 'Umair Bashir'];
+function isCore(emp){
+  return CORE_NAMES.some(n => emp.name.indexOf(n) === 0);
+}
+
+function renderTeam(teamNum){
+  const list = data['team' + teamNum];
+  const tbody = document.getElementById('body' + teamNum);
+  tbody.innerHTML = '';
+  if(list.length === 0){
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="5">No employees in this team yet.</td></tr>';
+    return;
+  }
+  // Core members always render first, regardless of group color; stable
+  // sort preserves original relative order within each bucket.
+  const order = list.map((emp, idx) => idx);
+  order.sort((a, b) => (isCore(list[a]) ? 0 : 1) - (isCore(list[b]) ? 0 : 1));
+
+  order.forEach(idx => {
+    const emp = list[idx];
+    const grp = emp.group === 'B' ? 'B' : 'A';
+    const core = isCore(emp);
+    const tr = document.createElement('tr');
+    tr.className = 'group-' + grp;
+    tr.innerHTML = `
+      <td class="name-cell${core ? ' core-name' : ''}"><span class="group-dot ${grp}"></span>${core ? '★ ' : ''}${escapeHtml(emp.name)}</td>
+      <td><span class="loc-badge ${locBadgeClass(emp.location)}">${escapeHtml(emp.location)}</span></td>
+      <td>${trainingCellHtml(emp)}</td>
+      <td class="notes-text">${escapeHtml(emp.notes || '—')}</td>
+      <td class="actions-cell">
+        <button class="group-toggle" onclick="toggleGroup(${teamNum}, ${idx})" title="Switch group">${grp==='A' ? '→ B' : '→ A'}</button>
+        <button class="btn small secondary" onclick="openEdit(${teamNum}, ${idx})">Edit</button>
+        <button class="btn small secondary" onclick="moveTeam(${teamNum}, ${idx})">Move to Team ${teamNum===1?2:1}</button>
+        <button class="btn small danger" onclick="deleteEmployee(${teamNum}, ${idx})">Delete</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function getTraining(emp){
+  return emp.training || {status:'live', currentCounty:'', trainer:'', certified:[]};
+}
+
+function trainingCellHtml(emp){
+  const tr = getTraining(emp);
+  const certified = tr.certified || [];
+  const certTitle = certified.length ? escapeHtml(certified.join(', ')) : 'No counties certified yet';
+  if(tr.status === 'training'){
+    return `
+      <span class="train-badge training">◐ Training</span>
+      <div class="train-detail">${escapeHtml(tr.currentCounty || 'County TBD')}${tr.trainer ? ' · with ' + escapeHtml(tr.trainer) : ''}</div>
+      ${certified.length ? `<div class="train-cert" title="${certTitle}">✓ ${certified.length} already certified</div>` : ''}
+    `;
+  }
+  return `
+    <span class="train-badge live">● Live</span>
+    ${certified.length
+      ? `<div class="train-cert" title="${certTitle}">✓ ${certified.length} ${certified.length === 1 ? 'county' : 'counties'}</div>`
+      : `<div class="train-cert muted">No counties logged</div>`}
+  `;
+}
+
+function locBadgeClass(loc){
+  if(loc === 'Ca') return 'loc-Ca';
+  if(loc === 'Fl') return 'loc-Fl';
+  return 'loc-CaFl';
+}
+
+function escapeHtml(str){
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+function switchTab(n){
+  currentTeam = n;
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active', i === n-1));
+  document.getElementById('panel1').classList.toggle('active', n===1);
+  document.getElementById('panel2').classList.toggle('active', n===2);
+  document.getElementById('panel3').classList.toggle('active', n===3);
+  document.getElementById('panel4').classList.toggle('active', n===4);
+  if(n===3) renderPairView();
+  if(n===4) renderTrainingView();
+}
+
+function toggleGroup(teamNum, idx){
+  const arr = data['team'+teamNum];
+  const emp = arr.splice(idx, 1)[0];
+  emp.group = emp.group === 'B' ? 'A' : 'B';
+  insertByGroup(arr, emp);
+  persist();
+  render();
+}
+
+function renderPairView(){
+  const container = document.getElementById('pairView');
+  const groupA1 = data.team1.filter(e => (e.group||'A') === 'A');
+  const groupB1 = data.team1.filter(e => (e.group||'A') === 'B');
+  const groupA2 = data.team2.filter(e => (e.group||'A') === 'A');
+  const groupB2 = data.team2.filter(e => (e.group||'A') === 'B');
+
+  function col(list){
+    if(list.length === 0) return '<div class="notes-text">— none —</div>';
+    const sorted = [...list].sort((a, b) => (isCore(a) ? 0 : 1) - (isCore(b) ? 0 : 1));
+    return sorted.map(e => `<div style="padding:6px 0;border-bottom:1px solid var(--line);${isCore(e) ? 'font-weight:800;' : ''}">${isCore(e) ? '★ ' : ''}${escapeHtml(e.name)}</div>`).join('');
+  }
+
+  container.innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px;">
+      <div style="background:#eaf0e1;border-radius:12px;padding:16px;">
+        <h3 style="margin:0 0 4px;font-size:.95rem;"><span class="group-dot A"></span>Group A — Team 1 (${groupA1.length})</h3>
+        ${col(groupA1)}
+      </div>
+      <div style="background:#eaf0e1;border-radius:12px;padding:16px;">
+        <h3 style="margin:0 0 4px;font-size:.95rem;"><span class="group-dot A"></span>Group A — Team 2 (${groupA2.length})</h3>
+        ${col(groupA2)}
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div style="background:#dee8f6;border-radius:12px;padding:16px;">
+        <h3 style="margin:0 0 4px;font-size:.95rem;"><span class="group-dot B"></span>Group B — Team 1 (${groupB1.length})</h3>
+        ${col(groupB1)}
+      </div>
+      <div style="background:#dee8f6;border-radius:12px;padding:16px;">
+        <h3 style="margin:0 0 4px;font-size:.95rem;"><span class="group-dot B"></span>Group B — Team 2 (${groupB2.length})</h3>
+        ${col(groupB2)}
+      </div>
+    </div>
+  `;
+}
+
+function renderTrainingView(){
+  const container = document.getElementById('trainingView');
+  const all = [
+    ...data.team1.map(e => Object.assign({}, e, {team: 1})),
+    ...data.team2.map(e => Object.assign({}, e, {team: 2}))
+  ];
+  const inTraining = all.filter(e => getTraining(e).status === 'training');
+
+  const countyMap = {};
+  all.forEach(e => {
+    getTraining(e).certified.forEach(c => {
+      if(!countyMap[c]) countyMap[c] = [];
+      countyMap[c].push(e);
+    });
+  });
+  const counties = Object.keys(countyMap).sort();
+
+  let html = '';
+
+  html += `<div class="training-section">
+    <h3>Currently In Training (${inTraining.length})</h3>`;
+  if(inTraining.length === 0){
+    html += `<div class="notes-text">No one is currently marked as in training.</div>`;
+  } else {
+    html += `<table><thead><tr><th>Name</th><th>Team</th><th>Group</th><th>Training On</th><th>Trainer</th></tr></thead><tbody>`;
+    inTraining.forEach(e => {
+      const t = getTraining(e);
+      const grp = e.group === 'B' ? 'B' : 'A';
+      html += `<tr class="group-${grp}">
+        <td class="name-cell${isCore(e) ? ' core-name' : ''}"><span class="group-dot ${grp}"></span>${isCore(e) ? '★ ' : ''}${escapeHtml(e.name)}</td>
+        <td>Team ${e.team}</td>
+        <td>${grp}</td>
+        <td>${escapeHtml(t.currentCounty || '—')}</td>
+        <td>${escapeHtml(t.trainer || '—')}</td>
+      </tr>`;
+    });
+    html += `</tbody></table>`;
+  }
+  html += `</div>`;
+
+  html += `<div class="training-section">
+    <h3>Certified By County (${counties.length} ${counties.length === 1 ? 'county' : 'counties'} logged)</h3>`;
+  if(counties.length === 0){
+    html += `<div class="notes-text">No certified counties logged yet. Add them from the Edit form on any employee.</div>`;
+  } else {
+    html += `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;">`;
+    counties.forEach(c => {
+      const emps = countyMap[c];
+      html += `<div class="county-card">
+        <div class="county-name">${escapeHtml(c)} <span class="county-count">(${emps.length})</span></div>
+        ${emps.map(e => `<div class="county-emp">${isCore(e) ? '★ ' : ''}${escapeHtml(e.name)} <span style="color:var(--sub);">· Team ${e.team}</span></div>`).join('')}
+      </div>`;
+    });
+    html += `</div>`;
+  }
+  html += `</div>`;
+
+  container.innerHTML = html;
+}
+
+function openAdd(teamNum){
+  editingIndex = null; editingTeam = null;
+  document.getElementById('modalTitle').textContent = 'Add Employee';
+  document.getElementById('fName').value = '';
+  document.getElementById('fLocation').value = 'Ca';
+  document.getElementById('fNotes').value = '';
+  document.getElementById('fTeam').value = String(teamNum);
+  document.getElementById('fGroup').value = 'A';
+  document.getElementById('fStatus').value = 'live';
+  document.getElementById('fCurrentCounty').value = '';
+  document.getElementById('fTrainerBy').value = '';
+  document.getElementById('fCertified').value = '';
+  document.getElementById('trainingOthersInfo').textContent = '';
+  toggleTrainingFields();
+  document.getElementById('overlay').classList.add('active');
+}
+
+function openEdit(teamNum, idx){
+  editingIndex = idx; editingTeam = teamNum;
+  const emp = data['team'+teamNum][idx];
+  const tr = emp.training || {status:'live', currentCounty:'', trainer:'', certified:[]};
+  document.getElementById('modalTitle').textContent = 'Edit Employee';
+  document.getElementById('fName').value = emp.name;
+  document.getElementById('fLocation').value = emp.location;
+  document.getElementById('fNotes').value = emp.notes || '';
+  document.getElementById('fTeam').value = String(teamNum);
+  document.getElementById('fGroup').value = emp.group === 'B' ? 'B' : 'A';
+  document.getElementById('fStatus').value = tr.status === 'training' ? 'training' : 'live';
+  document.getElementById('fCurrentCounty').value = tr.currentCounty || '';
+  document.getElementById('fTrainerBy').value = tr.trainer || '';
+  document.getElementById('fCertified').value = (tr.certified || []).join(', ');
+  toggleTrainingFields();
+
+  const trainees = findTrainees(emp.name);
+  const infoEl = document.getElementById('trainingOthersInfo');
+  infoEl.textContent = trainees.length
+    ? 'Currently training: ' + trainees.map(e => e.name + (getTraining(e).currentCounty ? ' (' + getTraining(e).currentCounty + ')' : '')).join(', ')
+    : 'Not currently listed as anyone\u2019s trainer.';
+
+  document.getElementById('overlay').classList.add('active');
+}
+
+// Reverse lookup: who currently lists this person as their trainer.
+function findTrainees(name){
+  const all = [...data.team1, ...data.team2];
+  return all.filter(e => {
+    const t = getTraining(e);
+    return t.trainer && t.trainer.trim().toLowerCase() === name.trim().toLowerCase();
+  });
+}
+
+function toggleTrainingFields(){
+  const status = document.getElementById('fStatus').value;
+  document.getElementById('trainingFieldsWrap').style.display = status === 'training' ? 'block' : 'none';
+}
+
+function closeModal(){
+  document.getElementById('overlay').classList.remove('active');
+}
+
+function saveEmployee(){
+  const name = document.getElementById('fName').value.trim();
+  if(!name){ toast('Name is required'); return; }
+  const location = document.getElementById('fLocation').value;
+  const notes = document.getElementById('fNotes').value.trim();
+  const targetTeam = parseInt(document.getElementById('fTeam').value, 10);
+  const group = document.getElementById('fGroup').value;
+  const status = document.getElementById('fStatus').value;
+  const currentCounty = document.getElementById('fCurrentCounty').value.trim();
+  const trainer = document.getElementById('fTrainerBy').value.trim();
+  const certifiedRaw = document.getElementById('fCertified').value.trim();
+  const certified = certifiedRaw ? certifiedRaw.split(',').map(s => s.trim()).filter(Boolean) : [];
+  const training = {
+    status,
+    currentCounty: status === 'training' ? currentCounty : '',
+    trainer,
+    certified
+  };
+
+  if(editingIndex !== null){
+    // remove from old team array
+    data['team'+editingTeam].splice(editingIndex, 1);
+  }
+  insertByGroup(data['team'+targetTeam], {name, location, notes, group, training});
+  persist();
+  render();
+  closeModal();
+  toast('Saved');
+}
+
+function moveTeam(teamNum, idx){
+  const emp = data['team'+teamNum].splice(idx,1)[0];
+  const otherTeam = teamNum === 1 ? 2 : 1;
+  insertByGroup(data['team'+otherTeam], emp);
+  persist();
+  render();
+  toast(emp.name + ' moved to Team ' + otherTeam);
+}
+
+function deleteEmployee(teamNum, idx){
+  const emp = data['team'+teamNum][idx];
+  if(!confirm('Delete ' + emp.name + '?')) return;
+  data['team'+teamNum].splice(idx,1);
+  persist();
+  render();
+  toast('Deleted');
+}
+
+function insertByGroup(arr, emp){
+  const grp = emp.group === 'B' ? 'B' : 'A';
+  let lastIdx = -1;
+  for(let i = 0; i < arr.length; i++){
+    if((arr[i].group || 'A') === grp) lastIdx = i;
+  }
+  if(lastIdx === -1){
+    // no existing members of this group in the team yet
+    if(grp === 'A') arr.unshift(emp); else arr.push(emp);
+  } else {
+    arr.splice(lastIdx + 1, 0, emp);
+  }
+}
+
+function exportData(){
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'calling-teams.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importData(evt){
+  const file = evt.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try{
+      const parsed = JSON.parse(e.target.result);
+      if(!parsed.team1 || !parsed.team2) throw new Error('bad format');
+      data = parsed;
+      persist();
+      render();
+      toast('Imported successfully');
+    }catch(err){
+      alert('Invalid JSON file');
+    }
+  };
+  reader.readAsText(file);
+  evt.target.value = '';
+}
+
+function resetData(){
+  if(!confirm('Reset both teams to the original uploaded rosters? This will discard your edits.')) return;
+  data = structuredClone(DEFAULT_DATA);
+  persist();
+  render();
+  toast('Reset to original rosters');
+}
+
+/* ---------- Shift rotation logic ---------- */
+function dayDiff(a, b){
+  const msPerDay = 24*60*60*1000;
+  const utcA = Date.UTC(a.getFullYear(), a.getMonth(), a.getDate());
+  const utcB = Date.UTC(b.getFullYear(), b.getMonth(), b.getDate());
+  return Math.floor((utcB - utcA) / msPerDay);
+}
+
+// Returns {team1: 'Day'|'Night', team2: 'Day'|'Night', blockStart, blockEnd, blockNumber}
+function shiftForDate(dateObj){
+  const diff = dayDiff(ROTATION_START, dateObj);
+  let blockIndex = Math.floor(diff / CYCLE_DAYS);
+  // handle dates before rotation start
+  const blockStart = new Date(ROTATION_START);
+  blockStart.setDate(blockStart.getDate() + blockIndex * CYCLE_DAYS);
+  const blockEnd = new Date(blockStart);
+  blockEnd.setDate(blockEnd.getDate() + CYCLE_DAYS - 1);
+
+  const team2IsDay = (((blockIndex % 2) + 2) % 2) === 0; // even blocks -> team2 day
+  return {
+    team1: team2IsDay ? 'Night' : 'Day',
+    team2: team2IsDay ? 'Day' : 'Night',
+    blockStart, blockEnd, blockIndex
+  };
+}
+
+function fmtDate(d){
+  return d.toLocaleDateString('en-US', {weekday:'short', year:'numeric', month:'short', day:'numeric'});
+}
+
+function renderShiftBanner(){
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const s = shiftForDate(today);
+  const container = document.getElementById('currentShiftCards');
+  container.innerHTML = `
+    <div class="shift-card ${s.team1==='Day'?'day':'night'}">
+      <span class="team-name">Team 1</span>
+      <span class="shift-tag ${s.team1==='Day'?'day':'night'}">${s.team1} Shift</span>
+    </div>
+    <div class="shift-card ${s.team2==='Day'?'day':'night'}">
+      <span class="team-name">Team 2</span>
+      <span class="shift-tag ${s.team2==='Day'?'day':'night'}">${s.team2} Shift</span>
+    </div>
+  `;
+  document.getElementById('todayLabel').textContent = 'Today: ' + fmtDate(today) +
+    ' · current block ' + fmtDate(s.blockStart) + ' – ' + fmtDate(s.blockEnd);
+}
+
+function checkDate(){
+  const val = document.getElementById('checkDate').value;
+  if(!val){ toast('Pick a date first'); return; }
+  const [y,m,d] = val.split('-').map(Number);
+  const chosen = new Date(y, m-1, d);
+  const s = shiftForDate(chosen);
+  document.getElementById('dateResult').textContent =
+    `On ${fmtDate(chosen)}: Team 1 = ${s.team1}, Team 2 = ${s.team2} (block ${fmtDate(s.blockStart)} – ${fmtDate(s.blockEnd)})`;
+}
+
+function exportPDF(){
+  renderPairView();
+  renderTrainingView();
+  const ts = document.getElementById('printTimestamp');
+  if(ts) ts.textContent = 'HireHippo Roster & Shift Report — generated ' + new Date().toLocaleString();
+  document.body.classList.add('print-mode');
+  window.print();
+}
+window.addEventListener('afterprint', function(){
+  document.body.classList.remove('print-mode');
+});
+
+// init
+render();
+document.getElementById('checkDate').valueAsDate = new Date();
+setSyncStatus('idle');
+startSync();
+</script>
+</body>
+</html>
